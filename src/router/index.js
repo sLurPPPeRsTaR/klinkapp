@@ -29,8 +29,8 @@ const MainApp = () => {
 export default function Router() {
   return (
     <Stack.Navigator
-      initialRouteName="Screen_Splash"
-      // initialRouteName="Screen_Checkout"
+      // initialRouteName="Screen_Splash"
+      initialRouteName="Screen_Checkout"
       screenOptions={{headerShown: false}}>
       <Stack.Screen name="Screen_Splash" component={Splash} />
       <Stack.Screen name="Screen_SplashConfirmed" component={SplashConfirmed} />

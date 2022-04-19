@@ -6,10 +6,31 @@ import useStore from '../../store';
 import {useForm, Controller} from 'react-hook-form';
 
 export default function ProductCheckout({navigation}) {
+  const EMAIL_REGEX =
+    /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+  const PHONE_REGEX =
+    /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+
   useEffect(() => {
     handlerTotal();
     return () => {};
   }, []);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    getValues,
+    setValue,
+    formState: {errors},
+  } = useForm({
+    defaultValues: {
+      customerName: '',
+      customerEmail: '',
+      customerPhone: '',
+      customerAddress: '',
+    },
+  });
 
   const [valuecourier, setValuecourier] = useState(null);
   const [opencourier, setOpenCourier] = useState(false);
@@ -23,7 +44,7 @@ export default function ProductCheckout({navigation}) {
 
   const {total, carts, addTotal} = useStore();
   const [edit, setEdit] = useState({});
-  const [tempCustomer, settempCustomer] = useState();
+  // const [tempCustomer, settempCustomer] = useState();
   const [customer, setCustomer] = useState({
     customerName: '',
     customerEmail: '',
@@ -38,35 +59,37 @@ export default function ProductCheckout({navigation}) {
   };
 
   const handlerSubmit = () => {
-    if (!tempCustomer) {
-      alert('nothing to submit!');
-      return;
-    } else {
-      if (edit) {
-        let tempEdit = {
-          customerName: tempCustomer.customerName,
-          customerEmail: tempCustomer.customerEmail,
-          customerPhone: tempCustomer.customerPhone,
-          customerAddress: tempCustomer.customerAddress,
-        };
-        setCustomer(tempEdit);
-        settempCustomer('');
-        setEdit('');
-        return;
-      }
-
-      setCustomer(tempCustomer);
-      settempCustomer('');
-    }
+    // if (edit) {
+    //   let tempEdit = {
+    //     customerName: tempCustomer.customerName,
+    //     customerEmail: tempCustomer.customerEmail,
+    //     customerPhone: tempCustomer.customerPhone,
+    //     customerAddress: tempCustomer.customerAddress,
+    //   };
+    //   setCustomer(tempEdit);
+    //   settempCustomer('');
+    //   setEdit('');
+    //   return;
+    // }
+    // console.log(data);
+    setCustomer(getValues());
+    reset();
   };
+  console.log('edit :', edit);
+  console.log('customer :', customer);
 
   const handlerEdit = () => {
-    if (edit) {
-      alert('nothing to edit!');
-      return;
-    }
+    // if (edit) {
+    //   alert('nothing to edit!');
+    //   return;
+    // }
     setEdit(customer);
-    settempCustomer(customer);
+    setValue({
+      customerName: '',
+      customerEmail: '',
+      customerPhone: '',
+      customerAddress: '',
+    });
   };
 
   const handlerOnChange = (value, input) => {
@@ -75,44 +98,148 @@ export default function ProductCheckout({navigation}) {
 
   return (
     <View style={tw`flex-1 bg-red-300 p-5`}>
-      <View style={tw`flex-row justify-between items-center`}>
-        <Text>Name : </Text>
-        <TextInput
-          onChangeText={value => handlerOnChange(value, 'customerName')}
-          value={tempCustomer?.customerName}
-          placeholder="Please input your name"
-          style={tw`border rounded-xl w-4/5 h-3/4 text-center`}
+      <View style={tw`flex justify-between items-center`}>
+        <Controller
+          rules={{
+            required: 'customerName is required',
+            minLength: {
+              value: 3,
+              message: 'customerName invalid not less than 3 character',
+            },
+          }}
+          control={control}
+          name="customerName"
+          render={({field: {value, onChange, onBlur}, fieldState: {error}}) => {
+            return (
+              <>
+                <TextInput
+                  style={[
+                    tw`border rounded-xl w-4/5 text-center`,
+                    error && tw`border rounded-xl w-4/5 text-center bg-red-700`,
+                  ]}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  placeholder="customerName"
+                />
+                {error ? (
+                  <Text style={tw`text-red-700`}>
+                    {errors.customerName?.message}
+                  </Text>
+                ) : (
+                  <Text></Text>
+                )}
+              </>
+            );
+          }}
         />
       </View>
-      <View style={tw`flex-row justify-between items-center`}>
-        <Text>E-mail : </Text>
-        <TextInput
-          onChangeText={value => handlerOnChange(value, 'customerEmail')}
-          value={tempCustomer?.customerEmail}
-          keyboardType="email-address"
-          placeholder="Please input your E-mail"
-          style={tw`border rounded-xl w-4/5 h-3/4 text-center`}
+
+      <View style={tw`flex justify-between items-center`}>
+        <Controller
+          rules={{
+            required: 'customerEmail is required',
+            pattern: {value: EMAIL_REGEX, message: 'customerEmail is invalid'},
+          }}
+          control={control}
+          name="customerEmail"
+          render={({field: {value, onChange, onBlur}, fieldState: {error}}) => {
+            return (
+              <>
+                <TextInput
+                  style={[
+                    tw`border rounded-xl w-4/5 text-center`,
+                    error && tw`border rounded-xl w-4/5 text-center bg-red-700`,
+                  ]}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  placeholder="customerEmail"
+                />
+                {error ? (
+                  <Text style={tw`text-red-700`}>
+                    {errors.customerEmail?.message}
+                  </Text>
+                ) : (
+                  <Text></Text>
+                )}
+              </>
+            );
+          }}
         />
       </View>
-      <View style={tw`flex-row justify-between items-center`}>
-        <Text>Phone : </Text>
-        <TextInput
-          onChangeText={value => handlerOnChange(value, 'customerPhone')}
-          value={tempCustomer?.customerPhone}
-          placeholder="Please input your Phone Number"
-          keyboardType="number-pad"
-          style={tw`border rounded-xl w-4/5 h-3/4 text-center`}
+
+      <View style={tw`flex justify-between items-center`}>
+        <Controller
+          rules={{
+            required: 'customerPhone is required',
+            pattern: {value: PHONE_REGEX, message: 'customerPhone is invalid'},
+          }}
+          control={control}
+          name="customerPhone"
+          render={({field: {value, onChange, onBlur}, fieldState: {error}}) => {
+            return (
+              <>
+                <TextInput
+                  style={[
+                    tw`border rounded-xl w-4/5 text-center`,
+                    error && tw`border rounded-xl w-4/5 text-center bg-red-700`,
+                  ]}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  placeholder="+62-811-8888-888"
+                />
+                {error ? (
+                  <Text style={tw`text-red-700`}>
+                    {errors.customerPhone?.message}
+                  </Text>
+                ) : (
+                  <Text></Text>
+                )}
+              </>
+            );
+          }}
         />
       </View>
-      <View>
-        <Text>Your Address</Text>
-        <TextInput
-          onChangeText={value => handlerOnChange(value, 'customerAddress')}
-          value={tempCustomer?.customerAddress}
-          placeholder="Please input your Address"
-          style={tw`border rounded-xl h-24 text-center`}
+
+      <View style={tw`flex justify-between items-center`}>
+        <Controller
+          rules={{
+            required: 'customerAddress is required',
+            minLength: {
+              value: 3,
+              message: 'customerAddress invalid not less than 3 character',
+            },
+          }}
+          control={control}
+          name="customerAddress"
+          render={({field: {value, onChange, onBlur}, fieldState: {error}}) => {
+            return (
+              <>
+                <TextInput
+                  style={[
+                    tw`border rounded-xl w-4/5 text-center`,
+                    error && tw`border rounded-xl w-4/5 text-center bg-red-700`,
+                  ]}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  placeholder="customerAddress"
+                />
+                {error ? (
+                  <Text style={tw`text-red-700`}>
+                    {errors.customerAddress?.message}
+                  </Text>
+                ) : (
+                  <Text></Text>
+                )}
+              </>
+            );
+          }}
         />
       </View>
+
       <View style={tw`my-3`}>
         <Text>Pick Your Courier</Text>
         <DropDownPicker
@@ -138,17 +265,17 @@ export default function ProductCheckout({navigation}) {
         />
       </View>
       <View style={tw`flex-row justify-evenly m-2`}>
-        <Button title="submit" onPress={handlerSubmit} />
+        <Button title="submit" onPress={handleSubmit(handlerSubmit)} />
         <Button title="edit" onPress={handlerEdit} />
       </View>
-      <View style={tw`flex-1 justify-end m-2`}>
+      <View style={tw`flex justify-end m-2`}>
         {!edit && (
           <Button
             title="Proceed"
             onPress={() => {
               Alert.alert(
                 'Confirmation',
-                `Hello Mr/Mrs."${customer?.customerName}" your total shop is "$${total}" all item will sent to your address at "${customer?.customerAddress}" make sure this phonenumber "${customer?.customerPhone}" always active. Press "OK" to "Proceed" !`,
+                `Hello Mr/Mrs.${customer.customerName} your total shop is $${total} we gonna sent all to your address which in ${customer.customerAddress} make sure this phonenumber which ${customer.customerPhone} can accept any calls , is it all set?`,
                 [
                   {
                     text: 'Cancel',
@@ -158,6 +285,12 @@ export default function ProductCheckout({navigation}) {
                   {
                     text: 'OK',
                     onPress: () => {
+                      setCustomer({
+                        customerName: '',
+                        customerEmail: '',
+                        customerPhone: '',
+                        customerAddress: '',
+                      });
                       navigation.push('Screen_SplashConfirmed');
                     },
                   },
