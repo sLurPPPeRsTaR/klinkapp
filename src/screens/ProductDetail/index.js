@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, Button, Image, Text, View} from 'react-native';
 import {useQuery} from 'react-query';
 import tw from 'tailwind-react-native-classnames';
@@ -8,19 +8,21 @@ import useStore from '../../store';
 export default function ProductDetail({route, navigation}) {
   const id = route.params.itemId;
   const {addToCarts, carts} = useStore();
-  const refQty = useRef(1);
+  const [qty, setQuantity] = useState(1);
 
   const handlerIncreaseQty = () => {
-    refQty.current = refQty.current + 1;
-    alert(`Qty: ${refQty.current}`);
+    console.log('aku adalah PENAMBAHAN dan aku dipanggil');
+
+    setQuantity(qty + 1);
   };
 
   const handlerDecreaseQty = () => {
-    if (refQty.current <= 1) {
+    console.log('aku adalah PENGURANGAN dan aku dipanggil');
+
+    if (qty <= 1) {
       return;
     }
-    refQty.current = refQty.current - 1;
-    alert(`Qty: ${refQty.current}`);
+    setQuantity(qty - 1);
   };
 
   const handlerAddToCarts = item => {
@@ -33,23 +35,23 @@ export default function ProductDetail({route, navigation}) {
     let tempItem = {
       id: item.id,
       title: item.title,
-      price: item.price * refQty.current,
-      quantity: refQty.current,
+      price: item.price * qty,
+      quantity: qty,
     };
     addToCarts(tempItem);
-    refQty.current = 1;
     getAPI();
     alert('Product add to your cart ! please check !');
     navigation.goBack();
   };
 
   const getAPI = async () => {
+    console.log('aku adalah api dan aku dipanggil');
     const URL = `https://fakestoreapi.com/products/${id}`;
     const respone = await fetch(URL);
     return await respone.json();
   };
 
-  const MapComponent = () => {
+  const MapComponent = useCallback(() => {
     const {data, isError, isLoading, isFetching, isSuccess} = useQuery(
       'api',
       getAPI,
@@ -57,6 +59,7 @@ export default function ProductDetail({route, navigation}) {
         // staleTime: 3000,
       },
     );
+
     if (isLoading) {
       return (
         <View style={tw`flex-1 items-center justify-center`}>
@@ -97,33 +100,34 @@ export default function ProductDetail({route, navigation}) {
           <View style={tw`flex-1 my-1`}>
             <Text style={tw`bg-green-400 p-2`}>{data.description}</Text>
           </View>
-          <View style={tw`flex-row justify-evenly`}>
-            <View style={tw`flex-row items-center`}>
-              <Button title="-" onPress={handlerDecreaseQty} />
-              <Text style={tw`mx-px`}>Qty</Text>
-              <Button title="+" onPress={handlerIncreaseQty} />
-            </View>
-            <View>
-              <Button
-                title="add to cart"
-                onPress={() => handlerAddToCarts(data)}
-              />
-            </View>
+          <View>
             <Button
-              title="Go back"
-              onPress={() => {
-                navigation.goBack();
-              }}
+              title="add to cart"
+              onPress={() => handlerAddToCarts(data)}
             />
           </View>
         </View>
       );
     }
-  };
+  }, []);
 
   return (
     <View style={tw`flex-1 bg-red-300 p-5`}>
       <MapComponent />
+      <View style={tw`flex-row justify-evenly`}>
+        <View style={tw`flex-row items-center`}>
+          <Button title="-" onPress={handlerDecreaseQty} />
+          <Text style={tw`mx-px`}>{qty}</Text>
+          <Button title="+" onPress={handlerIncreaseQty} />
+        </View>
+
+        <Button
+          title="Go back"
+          onPress={() => {
+            navigation.goBack();
+          }}
+        />
+      </View>
     </View>
   );
 }
